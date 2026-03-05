@@ -1,30 +1,35 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>CHO HRI Reporting Tool</title>
   
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
   
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3652/3652191.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#f26720">
 
   <style>
-    /* Reset margins to ensure full screen */
+    /* Reset margins and ensure seamless full screen */
     body, html {
       margin: 0;
       padding: 0;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
+      width: 100vw;
+      height: 100dvh; /* Dynamic viewport height fixes iOS/Android browser bar issues */
       background-color: #f0f2f5;
+      overflow: hidden; /* We want the scroll to happen inside the iframe, not outside */
     }
     
     /* Full screen iframe */
     iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
       border: none;
       width: 100%;
       height: 100%;
@@ -43,9 +48,9 @@
       flex-direction: column;
       align-items: center;
       gap: 10px;
+      z-index: 10;
     }
     
-    /* Simple spinner circle */
     #loader::after {
       content: "";
       width: 30px;
@@ -60,7 +65,6 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    
   </style>
 </head>
 <body>
@@ -74,7 +78,7 @@
     allow="geolocation; microphone; camera">
   </iframe>
 
-<button id="installBtn" style="display:none; position:absolute; bottom:20px; right:20px; z-index:9999; padding:10px 20px; background:#f26720; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; box-shadow:0 4px 12px rgba(0,0,0,0.2);">
+<button id="installBtn" style="display:none; position:absolute; bottom:80px; right:20px; z-index:9999; padding:12px 24px; background:#f26720; color:white; border:none; border-radius:30px; cursor:pointer; font-weight:bold; box-shadow:0 6px 16px rgba(242, 103, 32, 0.4);">
   📲 Install App
 </button>
 
@@ -82,36 +86,22 @@
   let deferredPrompt;
   const installBtn = document.getElementById('installBtn');
 
-  // 1. Listen for the 'beforeinstallprompt' event
   window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent the mini-infobar from appearing on mobile
     e.preventDefault();
-    // Stash the event so it can be triggered later.
     deferredPrompt = e;
-    // Update UI notify the user they can install the PWA
     installBtn.style.display = 'block';
-    console.log("Install prompt captured");
   });
 
-  // 2. Handle click on Install Button
   installBtn.addEventListener('click', (e) => {
     installBtn.style.display = 'none';
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then((choiceResult) => {
-      if (choiceResult.outcome === 'accepted') {
-        console.log('User accepted the install prompt');
-      } else {
-        console.log('User dismissed the install prompt');
-      }
       deferredPrompt = null;
     });
   });
 
-  // 3. Register Service Worker (Standard Code)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('SW Registered!', reg))
-      .catch(err => console.log('SW Failed', err));
+    navigator.serviceWorker.register('./sw.js');
   }
 </script>
 
